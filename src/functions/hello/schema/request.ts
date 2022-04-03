@@ -4,6 +4,5 @@ export default {
     value1: { type: 'number' },
     value2: { type: 'number' },
     operator: { type: 'string' }
-  },
-  // required: ['name']
+  }
 } as const

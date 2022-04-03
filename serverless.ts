@@ -1,6 +1,7 @@
 import type { AWS } from '@serverless/typescript';
 
-import schema from './src/functions/hello/schema';
+import responseSchema from '@functions/hello/schema/response';
+import requestSchema from './src/functions/hello/schema/request';
 
 const serverlessConfiguration: AWS = {
   service: 'oapi',
@@ -39,7 +40,7 @@ const serverlessConfiguration: AWS = {
             path: 'hello',
             request: {
               schema: {
-                'application/json': schema
+                'application/json': requestSchema
               }
             },
           }
@@ -56,16 +57,7 @@ const serverlessConfiguration: AWS = {
             Ref: 'ApiGatewayRestApi'
           },
           ContentType: "application/json",
-          Schema: {
-            $schema: "http://json-schema.org/draft-04/schema#",
-            title: "HelloResponse",
-            type: "object",
-            properties: {
-              computed: {
-                type: "number"
-              }
-            }            
-          }
+          Schema: responseSchema
         }
       }
     },
