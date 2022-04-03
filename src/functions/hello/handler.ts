@@ -1,10 +1,11 @@
 import 'source-map-support/register';
 
-import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/apiGateway';
+import { formatJSONResponse, ValidatedEventAPIGatewayProxyEvent } from '@libs/apiGateway';
 import { middyfy } from '@libs/lambda';
 import { when } from '@libs/when'
 
-import schema from './schema';
+import schema from './schema/request';
+import { APIGatewayProxyResult } from 'aws-lambda';
 
 const operator = ["add",  "sub", "multiple", "divide"] as const
 
@@ -14,7 +15,7 @@ const isOperator = (arg: string): arg is Operator => {
   return operator.some((o) => arg === o)
 }
 
-const hello: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
+const hello: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event): Promise<APIGatewayProxyResult> => {
 
   if (!event.body.operator || !isOperator(event.body.operator)) {
     return {
@@ -30,17 +31,9 @@ const hello: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =
     .on((o) => o === "divide", () => event.body.value1 / event.body.value2)
     .otherwise(() => { throw new Error('') })
   
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      computed:result
-    })
-  }
-  
-  // return formatJSONResponse({
-  //   message: `Hello ${event.body.name}, welcome to the exciting Serverless world!`,
-  //   event,
-  // });
+  return formatJSONResponse({
+    computed: result
+  })
 }
 
 export const main = middyfy(hello);
