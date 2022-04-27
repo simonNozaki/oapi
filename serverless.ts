@@ -29,6 +29,14 @@ const serverlessConfiguration: AWS = {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
     },
     lambdaHashingVersion: '20201221',
+    logs: {
+      restApi: {
+        accessLogging: true,
+        executionLogging: true,
+        level: "INFO",
+        fullExecutionData: true,
+      }
+    }
   },
   functions: {
     hello: {  
@@ -38,11 +46,31 @@ const serverlessConfiguration: AWS = {
           http: {
             method: 'post',
             path: 'hello',
+            integration: "mock",
             request: {
               schema: {
                 'application/json': requestSchema
-              }
+              },
+              template: {
+                "application/json": "{ \"statusCode\": 503 }"
+              },
             },
+            response: {
+              statusCodes: {
+                "200": {
+                  pattern: "200",
+                  template: "{ \"status\": \"0\" }"
+                },
+                "500": {
+                  pattern: "(4\\d{2})|(5\\d{2})",
+                  template: "{ \"status\": \"9\" }"
+                },
+                "503": {
+                  pattern: "(4\\d{2})|(5\\d{2})",
+                  template: "{ \"status\": \"9\" }"
+                }
+              }
+            }
           }
         }
       ]
@@ -59,6 +87,25 @@ const serverlessConfiguration: AWS = {
           ContentType: "application/json",
           Schema: responseSchema
         }
+      },
+      ApiGatewayHelloPostErrorReponseModel: {
+        Type: 'AWS::ApiGateway::Model',
+        Properties:{
+          RestApiId: {
+            Ref: 'ApiGatewayRestApi'
+          },
+          ContentType: "application/json",
+          Schema: {
+            $schema: "http://json-schema.org/draft-04/schema#",
+            title: "HelloMaintenanceResponse",
+            type: "object",
+            properties: {
+              status: {
+                type: "string"
+              }
+            }
+          }
+        }
       }
     },
     extensions: {
@@ -73,7 +120,22 @@ const serverlessConfiguration: AWS = {
                 }
               }
             },
-            { StatusCode: '500' }
+            {
+              StatusCode: '500',
+              ResponseModels: {
+                "application/json": {
+                  Ref: 'ApiGatewayHelloPostErrorReponseModel'
+                }
+              }
+            },
+            {
+              StatusCode: '503',
+              ResponseModels: {
+                "application/json": {
+                  Ref: 'ApiGatewayHelloPostErrorReponseModel'
+                }
+              }
+            }
           ]
         }
       }
