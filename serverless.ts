@@ -1,7 +1,21 @@
 import type { AWS } from '@serverless/typescript';
 
 import responseSchema from '@functions/hello/schema/response';
+import maintenanceResponseSchema from '@functions/hello/schema/maintenance-response';
 import requestSchema from './src/functions/hello/schema/request';
+
+const baseDatetime = new Date();
+const toDatetime = baseDatetime;
+toDatetime.setHours(baseDatetime.getHours() + 3);
+
+const maintenanceResponse = {
+  from: baseDatetime.toISOString(),
+  to: toDatetime.toISOString(),
+  message: `
+  システムアップデートのためサービスを停止しています。
+  お客様にはご不便をおかけしますが、メンテナンス終了まで今しばらくお待ちください。
+  `,
+}
 
 const serverlessConfiguration: AWS = {
   service: 'oapi',
@@ -62,12 +76,12 @@ const serverlessConfiguration: AWS = {
                   template: "{ \"status\": \"0\" }"
                 },
                 "500": {
-                  pattern: "(4\\d{2})|(5\\d{2})",
+                  pattern: "500",
                   template: "{ \"status\": \"9\" }"
                 },
                 "503": {
-                  pattern: "(4\\d{2})|(5\\d{2})",
-                  template: "{ \"status\": \"9\" }"
+                  pattern: "503",
+                  template: JSON.stringify(maintenanceResponse),
                 }
               }
             }
@@ -85,6 +99,7 @@ const serverlessConfiguration: AWS = {
             Ref: 'ApiGatewayRestApi'
           },
           ContentType: "application/json",
+          Name: "HelloReponse",
           Schema: responseSchema
         }
       },
@@ -95,9 +110,10 @@ const serverlessConfiguration: AWS = {
             Ref: 'ApiGatewayRestApi'
           },
           ContentType: "application/json",
+          Name: "HelloErrorReponse",
           Schema: {
             $schema: "http://json-schema.org/draft-04/schema#",
-            title: "HelloMaintenanceResponse",
+            title: "HelloErrorResponse",
             type: "object",
             properties: {
               status: {
@@ -105,6 +121,17 @@ const serverlessConfiguration: AWS = {
               }
             }
           }
+        }
+      },
+      ApiGatewayHelloPostMaintenanceReponseModel: {
+        Type: 'AWS::ApiGateway::Model',
+        Properties:{
+          RestApiId: {
+            Ref: 'ApiGatewayRestApi'
+          },
+          ContentType: "application/json",
+          Schema: maintenanceResponseSchema,
+          Name: "HelloMaintenanceReponse"
         }
       }
     },
@@ -132,7 +159,7 @@ const serverlessConfiguration: AWS = {
               StatusCode: '503',
               ResponseModels: {
                 "application/json": {
-                  Ref: 'ApiGatewayHelloPostErrorReponseModel'
+                  Ref: 'ApiGatewayHelloPostMaintenanceReponseModel'
                 }
               }
             }
