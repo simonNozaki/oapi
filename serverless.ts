@@ -1,21 +1,9 @@
 import type { AWS } from '@serverless/typescript';
 
 import responseSchema from '@functions/hello/schema/response';
-import maintenanceResponseSchema from '@functions/hello/schema/maintenance-response';
+import { maintenanceResponse, helloMaintenanceReponseSchema } from '@functions/hello/schema/maintenance-response';
 import requestSchema from './src/functions/hello/schema/request';
-
-const baseDatetime = new Date();
-const toDatetime = baseDatetime;
-toDatetime.setHours(baseDatetime.getHours() + 3);
-
-const maintenanceResponse = {
-  from: baseDatetime.toISOString(),
-  to: toDatetime.toISOString(),
-  message: `
-  システムアップデートのためサービスを停止しています。
-  お客様にはご不便をおかけしますが、メンテナンス終了まで今しばらくお待ちください。
-  `,
-}
+import { HttpApiRequest } from 'aws/http-api';
 
 const serverlessConfiguration: AWS = {
   service: 'oapi',
@@ -65,9 +53,7 @@ const serverlessConfiguration: AWS = {
               schema: {
                 'application/json': requestSchema
               },
-              template: {
-                "application/json": "{ \"statusCode\": 503 }"
-              },
+              template: new HttpApiRequest(process.env.STAGE).getApiRequestTemplate(),
             },
             response: {
               statusCodes: {
@@ -130,7 +116,7 @@ const serverlessConfiguration: AWS = {
             Ref: 'ApiGatewayRestApi'
           },
           ContentType: "application/json",
-          Schema: maintenanceResponseSchema,
+          Schema: helloMaintenanceReponseSchema,
           Name: "HelloMaintenanceReponse"
         }
       }
