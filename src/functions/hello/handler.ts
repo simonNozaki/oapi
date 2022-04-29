@@ -17,6 +17,7 @@ const isOperator = (arg: string): arg is Operator => {
 
 const hello: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event): Promise<APIGatewayProxyResult> => {
 
+  console.log(event);
   if (!event.body.operator || !isOperator(event.body.operator)) {
     return {
       statusCode: 400,
