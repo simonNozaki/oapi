@@ -5,6 +5,8 @@ import { maintenanceResponse, helloMaintenanceReponseSchema } from '@functions/h
 import requestSchema from './src/functions/hello/schema/request';
 import { HttpApiRequest } from 'aws/http-api';
 
+const httpApiRequest = new HttpApiRequest(process.env.STAGE);
+
 const serverlessConfiguration: AWS = {
   service: 'oapi',
   frameworkVersion: '2',
@@ -48,12 +50,12 @@ const serverlessConfiguration: AWS = {
           http: {
             method: 'post',
             path: 'hello',
-            integration: "mock",
+            integration: httpApiRequest.getIntegration(),
             request: {
               schema: {
                 'application/json': requestSchema
               },
-              template: new HttpApiRequest(process.env.STAGE).getApiRequestTemplate(),
+              template: httpApiRequest.getApiRequestTemplate(),
             },
             response: {
               statusCodes: {
