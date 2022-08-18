@@ -13,7 +13,6 @@
     "@freyam13/serverless-openapi-documentation": "^1.0.1",
     "@middy/core": "^1.5.2",
     "@middy/http-json-body-parser": "^1.5.2",
-    "i": "^0.3.7",
     "npm": "^8.6.0",
     "serverless-openapi-documentation-v2": "^0.4.6",
     "source-map-support": "^0.5.19"
