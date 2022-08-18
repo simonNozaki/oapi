@@ -14,10 +14,10 @@ export type Integration = "lambda" | "mock";
 export class HttpApiRequest {
   private readonly _stage: Stage;
   constructor (stage: string) {
-    if (stage === "dev" || stage === "production" || stage === "maintenance") {
+    if (stage === "production" || stage === "maintenance") {
       this._stage = stage;
     }
-    throw new Error('環境変数が指定のものではありません');
+    this._stage = "dev";
   }
 
   getIntegration(): Integration {

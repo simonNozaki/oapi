@@ -3,9 +3,8 @@ import type { AWS } from '@serverless/typescript';
 import responseSchema from '@functions/hello/schema/response';
 import { maintenanceResponse, helloMaintenanceReponseSchema } from '@functions/hello/schema/maintenance-response';
 import requestSchema from './src/functions/hello/schema/request';
-import { HttpApiRequest } from 'aws/http-api';
 
-const httpApiRequest = new HttpApiRequest(process.env.STAGE);
+// const httpApiRequest = new HttpApiRequest(process.env.STAGE);
 
 const serverlessConfiguration: AWS = {
   service: 'oapi',
@@ -22,7 +21,7 @@ const serverlessConfiguration: AWS = {
   provider: {
     name: 'aws',
     runtime: 'nodejs14.x',
-    profile: '${opt:profile}',
+    // profile: '${opt:profile}',
     region: 'ap-northeast-1',
     stage: 'dev',
     apiGateway: {
@@ -50,12 +49,10 @@ const serverlessConfiguration: AWS = {
           http: {
             method: 'post',
             path: 'hello',
-            integration: httpApiRequest.getIntegration(),
             request: {
               schema: {
                 'application/json': requestSchema
               },
-              template: httpApiRequest.getApiRequestTemplate(),
             },
             response: {
               statusCodes: {
@@ -71,6 +68,31 @@ const serverlessConfiguration: AWS = {
                   pattern: "503",
                   template: JSON.stringify(maintenanceResponse),
                 }
+              }
+            }
+          }
+        }
+      ]
+    },
+    helloQuery: {
+      handler: `src/functions/hello/handler.main`,
+      events: [
+        {
+          http: {
+            method: 'get',
+            path: 'hello/get',
+            request: {
+              parameters: {
+                querystrings: {
+                  id: {
+                    required: true,
+                  }
+                }
+              }
+            },
+            response: {
+              statusCodes: {
+                "200": {}
               }
             }
           }
@@ -151,6 +173,20 @@ const serverlessConfiguration: AWS = {
                 }
               }
             }
+          ]
+        }
+      },
+      ApiGatewayMethodHelloGetGet: {
+        Properties: {
+          MethodResponses: [
+            {
+              StatusCode: '200',
+              ResponseModels: {
+                "application/json": {
+                  Ref: 'ApiGatewayHelloPostReponseModel'
+                }
+              }
+            },
           ]
         }
       }
